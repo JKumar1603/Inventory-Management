@@ -21,6 +21,8 @@ VALID_TRANSITIONS = {
     POStatus.acknowledged: [POStatus.received, POStatus.cancelled],
 }
 
+_PO_NOT_FOUND = "Purchase order not found"
+
 
 @router.post("", response_model=POResponse, status_code=status.HTTP_201_CREATED)
 def create_order(
@@ -84,7 +86,7 @@ def get_order(
 ):
     po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
     if not po:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
+        raise HTTPException(status_code=404, detail=_PO_NOT_FOUND)
     return po
 
 
@@ -97,7 +99,7 @@ def update_order_status(
 ):
     po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
     if not po:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
+        raise HTTPException(status_code=404, detail=_PO_NOT_FOUND)
 
     allowed = VALID_TRANSITIONS.get(po.status, [])
     if update.status not in allowed:
@@ -119,7 +121,7 @@ def receive_order(
 ):
     po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
     if not po:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
+        raise HTTPException(status_code=404, detail=_PO_NOT_FOUND)
     if po.status not in (POStatus.submitted, POStatus.acknowledged):
         raise HTTPException(
             status_code=400,
